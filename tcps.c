@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
     unsigned int clitLen; // client internet socket address length
     char recvBuffer[BUFSIZE];//receive temporary buffer
     int recvMsgSize, sendMsgSize; // recieve and send buffer size
+    char word[2048];
 
     if ( argc != 2) {
         fprintf(stderr, "argument count mismatch error.\n");
@@ -57,6 +58,12 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
         printf("connected from %s.\n", inet_ntoa(clitSockAddr.sin_addr));
+        snprintf(word, sizeof(word),
+            "HTTP/1.0 200 OK\r\n"
+            "Content-Length: 20\r\n"
+            "Content-Type: text/html\r\n"
+            "\r\n"
+            "HELLO\r\n");
 
         while(1) {
             if ((recvMsgSize = recv(clitSock, recvBuffer, BUFSIZE, 0)) < 0) {
@@ -67,13 +74,14 @@ int main(int argc, char* argv[]) {
                 break;
             }
 
-            if((sendMsgSize = send(clitSock, recvBuffer, recvMsgSize, 0)) < 0){
-                perror("send() failed.");
-                exit(EXIT_FAILURE);
-            } else if(sendMsgSize == 0){
-                fprintf(stderr, "connection closed by foreign host.\n");
-                break;
-            }
+            send(clitSock, word, (int)strlen(word), 0);
+            // if((sendMsgSize = send(clitSock, recvBuffer, recvMsgSize, 0)) < 0){
+            //     perror("send() failed.");
+            //     exit(EXIT_FAILURE);
+            // } else if(sendMsgSize == 0){
+            //     fprintf(stderr, "connection closed by foreign host.\n");
+            //     break;
+            // }
         }
 
         close(clitSock);
